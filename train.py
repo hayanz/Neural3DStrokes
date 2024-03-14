@@ -62,13 +62,13 @@ def train():
     trainset = datasets.load_dataset('train', cfg)
     testset = datasets.load_dataset('test', cfg)
     trainloader = DataLoader(np.arange(len(trainset)),
-                             num_workers=8,
+                             num_workers=1,
                              sampler=train_utils.InfiniteSampler(trainset),
                              batch_size=1,
                              persistent_workers=True,
                              collate_fn=trainset.collate_fn)
     testloader = DataLoader(np.arange(len(testset)),
-                            num_workers=4,
+                            num_workers=1,
                             sampler=train_utils.InfiniteSampler(testset, shuffle=False),
                             batch_size=1,
                             persistent_workers=True,
@@ -176,13 +176,13 @@ def init_loss(cfg, device):
         style_loss = loss_fn.StyleLoss(device, cfg)
     else:
         style_loss = None
-        
+
     global clip_loss
     if cfg.clip_loss_mult > 0 and cfg.clip_positive_prompt:
         clip_loss = loss_fn.CLIPLoss(device, cfg)
     else:
         clip_loss = None
-        
+
     global diffusion_loss
     if cfg.diffusion_loss_mult > 0:
         diffusion_loss = loss_fn.DiffusionLoss(device, cfg)
@@ -216,11 +216,11 @@ def apply_loss(batch, renderings, ray_history, module, cfg) -> tuple[torch.Tenso
     # hash grid l2 weight decay
     if cfg.hash_decay_mult > 0:
         losses['hash_decay'] = loss_fn.hash_decay_loss(ray_history, cfg)
-        
+
     # error field loss
     if cfg.error_loss_mult > 0:
         losses['error'] = loss_fn.error_loss(batch, renderings, ray_history, cfg)
-        
+
     # density regularization loss
     if cfg.density_reg_loss_mult > 0:
         losses['density_reg'] = loss_fn.density_reg_loss(module, cfg)
@@ -228,19 +228,19 @@ def apply_loss(batch, renderings, ray_history, module, cfg) -> tuple[torch.Tenso
     # style loss
     if cfg.style_loss_mult > 0 and style_loss:
         losses['style'] = style_loss(renderings[-1]['rgb'].permute(0, 3, 1, 2))
-        
+
     # CLIP loss
     if cfg.clip_loss_mult > 0 and clip_loss:
         losses['clip'] = clip_loss(batch, renderings)
-        
+
     # score distillation loss
     if cfg.diffusion_loss_mult > 0 and diffusion_loss:
         losses['diffusion'] = diffusion_loss(renderings[-1]['rgb'].permute(0, 3, 1, 2))
-        
+
     # transmittance loss for zero-shot generation
     if cfg.transmittance_loss_mult > 0:
         losses['transmittance'] = loss_fn.transmittance_loss(renderings, cfg)
-        
+
     # entropy loss for zero-shot generation
     if cfg.entropy_loss_mult > 0:
         losses['entropy'] = loss_fn.entropy_loss(ray_history, cfg)

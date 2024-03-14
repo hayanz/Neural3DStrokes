@@ -1,10 +1,13 @@
 name: n3dstrokes
 channels:
+  - anaconda
   - pytorch
   - nvidia
   - defaults
   - conda-forge
 dependencies:
+  - cudatoolkit=11.8
+  - cudnn=8.9.2.26
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_kmp_llvm
   - archspec=0.2.2=pyhd8ed1ab_0
@@ -142,7 +145,7 @@ dependencies:
       - absl-py==2.0.0
       - accelerate==0.24.1
       - cachetools==5.3.2
-      - clip==1.0
+      - clip==0.1.0
       - contourpy==1.2.0
       - cycler==0.12.1
       - fonttools==4.44.0
@@ -177,6 +180,5 @@ dependencies:
       - tensorboard==2.15.1
       - tensorboard-data-server==0.7.2
       - tifffile==2023.9.26
-      - torch-scatter==2.1.2
       - wcwidth==0.2.10
       - werkzeug==3.0.1

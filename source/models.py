@@ -594,17 +594,17 @@ class StrokeField(nn.Module):
         next_step = min(max(next_step + self.init_num_strokes, prev_step), self.max_num_strokes)
         # Track the expoential moving average of shape gradients
         if self.shape_params.grad is not None:
-            self.shape_params_grad.data.copy_(self.shape_params_grad.data * self.shape_grad_ema + 
+            self.shape_params_grad.data.copy_(self.shape_params_grad.data * self.shape_grad_ema +
                                               self.shape_params.grad.data * (1 - self.shape_grad_ema))
         # Check old strokes that should be reset
         reset_density = self.reset_density if self.density_params.requires_grad else -torch.inf
         reset_indices = torch.nonzero(self.density_params[:prev_step] < reset_density).squeeze(1)
         num_resets = reset_indices.numel()
         # Update the stroke field if conditions are met
-        if next_step - prev_step >= self.min_update_interval or (num_resets > 0 and 
+        if next_step - prev_step >= self.min_update_interval or (num_resets > 0 and
             cur_step - self.last_update_step >= self.min_reset_interval and train_frac < self.max_reset_frac):
-            print(f'Update stroke field {prev_step} -> {next_step} ({self.max_num_strokes} total)'
-                  f', reset {num_resets} strokes')
+            # print(f'Update stroke field {prev_step} -> {next_step} ({self.max_num_strokes} total)'
+            #       f', reset {num_resets} strokes')
 
             # Sample a batch of random points and get their errors
             coords_top = None
@@ -620,8 +620,8 @@ class StrokeField(nn.Module):
             elif prev_step > self.init_num_strokes and self.use_shape_grads:
                 shape_params_grads = self.shape_params_grad[:prev_step].sum(-1)
                 shape_params_grads[reset_indices] = -torch.inf
-                grads_top, index_top = torch.topk(shape_params_grads, 
-                                                  k=min(next_step - prev_step + num_resets, 
+                grads_top, index_top = torch.topk(shape_params_grads,
+                                                  k=min(next_step - prev_step + num_resets,
                                                         prev_step - num_resets))
                 shape_params_top = self.shape_params[index_top]
                 def get_maxgrad_shape_params(idx):
@@ -638,7 +638,7 @@ class StrokeField(nn.Module):
                 color_params = self.color_param_sampler()
                 self.shape_params.data[i] = shape_params.to(self.shape_params.device)
                 self.color_params.data[i] = color_params.to(self.color_params.device)
-                
+
             # Also, reset parameters for the old strokes that has zero density.
             offset = next_step - prev_step
             for i in reset_indices:
@@ -679,8 +679,8 @@ class StrokeField(nn.Module):
         else:
             sdf_delta = self.sdf_delta_eval
         alphas, colors, sdfs, texcoords = self.stroke_fn(
-            coords, radius, viewdirs, shape_params, color_params, sdf_delta, 
-            self.use_laplace_transform, self.inv_scale_radius, 
+            coords, radius, viewdirs, shape_params, color_params, sdf_delta,
+            self.use_laplace_transform, self.inv_scale_radius,
             True, self.stroke_texture is not None)
 
         # Compute the fixed step strokes.
@@ -691,7 +691,7 @@ class StrokeField(nn.Module):
                 density_params_fixed = self.density_params[:fixed_step].detach() * self.density_scale
                 alphas_fixed, colors_fixed, sdfs_fixed, texcoords_fixed = self.stroke_fn(
                     coords, radius, viewdirs, shape_params_fixed, color_params_fixed, sdf_delta,
-                    self.use_laplace_transform, self.inv_scale_radius, 
+                    self.use_laplace_transform, self.inv_scale_radius,
                     True, self.stroke_texture is not None)
             alphas = torch.cat([alphas_fixed, alphas], dim=-1)
             colors = torch.cat([colors_fixed, colors], dim=-2)
@@ -700,7 +700,7 @@ class StrokeField(nn.Module):
             if texcoords is not None:
                 texcoords = torch.cat([texcoords_fixed, texcoords], dim=-2)
             density_params = torch.cat([density_params_fixed, density_params], dim=-1)
-            
+
         # Apply texture modulation to colors and alphas.
         if self.stroke_texture is not None:
             colors, alphas = self.stroke_texture(texcoords, colors, alphas)
@@ -725,7 +725,7 @@ class StrokeField(nn.Module):
         """
         if self.no_adaptive_delta:
             radius = torch.full_like(radius, radius.mean())
-        
+
         if self.disable_density_normals:
             density, x, coords_warped = self.predict_density(coords, radius, viewdirs, no_warp=no_warp)
             grad_density = None
