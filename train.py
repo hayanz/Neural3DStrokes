@@ -62,13 +62,13 @@ def train():
     trainset = datasets.load_dataset('train', cfg)
     testset = datasets.load_dataset('test', cfg)
     trainloader = DataLoader(np.arange(len(trainset)),
-                             num_workers=1,
+                             num_workers=8,
                              sampler=train_utils.InfiniteSampler(trainset),
                              batch_size=1,
                              persistent_workers=True,
                              collate_fn=trainset.collate_fn)
     testloader = DataLoader(np.arange(len(testset)),
-                            num_workers=1,
+                            num_workers=4,
                             sampler=train_utils.InfiniteSampler(testset, shuffle=False),
                             batch_size=1,
                             persistent_workers=True,

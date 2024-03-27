@@ -1,10 +1,10 @@
-Config.exp_name = 'lego_bezier_2000'
+Config.exp_name = 'chair_edge'
 Config.dataset_loader = 'blender'
-Config.data_dir = 'data/nerf_synthetic/lego'
+Config.data_dir = 'data/edges/chair'
 Config.near = 2
 Config.far = 6
 Config.factor = 2
-Config.train_render_every = 2000
+Config.train_render_every = 1000
 Config.max_steps = 25000
 Config.data_loss_mult = 1.0
 Config.mask_loss_mult = 0.02
